@@ -12,9 +12,6 @@ app.use(express.json());
 const SLACK_WEBHOOK_URL = process.env.SLACK_WEBHOOK_URL; // Obligatoire
 const PORT = process.env.PORT || 3000;
 
-// Compteur de billets vendus (en mémoire — remplacer par une DB pour persister)
-let totalTicketsSold = 0;
-
 // ─── ROUTE DE SANTÉ ──────────────────────────────────────────────────────────
 app.get("/", (req, res) => res.send("HelloAsso → Slack webhook actif ✅"));
 
@@ -36,7 +33,6 @@ app.post("/webhook/helloasso", async (req, res) => {
     // ── Extraction des informations de la commande ──
     const buyerFirstName = order.payer?.firstName || order.buyer?.firstName || "Inconnu";
     const buyerLastName  = order.payer?.lastName  || order.buyer?.lastName  || "";
-    const buyerEmail     = order.payer?.email     || order.buyer?.email     || "";
 
     // Nombre de billets dans cette commande
     const items = order.items || [];
@@ -70,7 +66,6 @@ app.post("/webhook/helloasso", async (req, res) => {
           type: "section",
           fields: [
             { type: "mrkdwn", text: `*Acheteur :*\n${buyerFirstName} ${buyerLastName}` },
-            { type: "mrkdwn", text: `*Email :*\n${buyerEmail || "_Non communiqué_"}` },
           ],
         },
         {
@@ -86,17 +81,7 @@ app.post("/webhook/helloasso", async (req, res) => {
         {
           type: "section",
           fields: [
-            { type: "mrkdwn", text: `*Billets dans cette commande :*\n*${ticketsInOrder}* billet(s)` },
-            { type: "mrkdwn", text: `*Total billets vendus :*\n*${totalTicketsSold}* au total 🎉` },
-          ],
-        },
-        {
-          type: "context",
-          elements: [
-            {
-              type: "mrkdwn",
-              text: `Reçu le ${new Date().toLocaleString("fr-FR", { timeZone: "Europe/Paris" })}`,
-            },
+            { type: "mrkdwn", text: `*Billets dans cette commande :*\n*${ticketsInOrder}* billet(s)` }
           ],
         },
       ],
